@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Happy Graduation</title>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght500;700&family=Fredoka:wght500;700&family=Quicksand:wght500;700&family=Fira+Code:wght400;500&display=swap" rel="stylesheet">
+
+<style>
+/* =========================
+   PENGATURAN DASAR & FONT
+========================= */
+body {
+  margin:0; height:100vh; background:#ffc0cb;
+  font-family: 'Quicksand', sans-serif; 
+  display:flex; justify-content:center; align-items:center; overflow:hidden;
+}
+
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-size:24px; 
+  margin:10px 0; 
+  color:#ff4d88;
+}
+
+.content p {
+  font-family: 'Quicksand', sans-serif;
+  font-size:16px; 
+  color:#333;
+}
+
+.btn, .keyboard button, #musicToggle {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+}
+
+/* =========================
+   KARTU UTAMA & SLIDE
+========================= */
+.card {
+  position: relative;
+  z-index: 10;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  max-width: 380px;
+  width: 90%;
+  height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+/* Responsif HP Miring / Landscape (iPhone 11) */
+@media (max-height: 480px) and (orientation: landscape) {
+  .card {
+    height: 92vh;
+    max-width: 520px;
+  }
+  img {
+    max-height: 90px !important;
+  }
+  .pin-box {
+    margin: 5px 0 !important;
+  }
+  .keyboard button {
+    width: 40px !important;
+    height: 35px !important;
+    font-size: 14px !important;
+    margin: 2px !important;
+  }
+}
+
+.slide {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: none;
+  flex-direction: column;
+  padding: 20px;
+  padding-bottom: 70px;
+  box-sizing: border-box;
+}
+
+.slide.active {
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.nav-btns {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+/* =========================
+   INPUT PIN & KEYBOARD
+========================= */
+.pin-box {
+  display: flex; gap: 10px; justify-content: center; margin: 15px 0;
+}
+.pin-box input {
+  width: 42px; height: 50px; font-size: 24px; text-align: center;
+  border-radius: 10px; border: 2px solid #ff4d88; background: #fff;
+  color: #000;
+}
+.error { color: #ff0000; margin-top: 8px; font-weight: bold; min-height: 20px; }
+
+.keyboard .row { display: flex; justify-content: center; margin: 2px 0; }
+.keyboard button {
+  width: 50px; height: 50px; margin: 3px; border: none; border-radius: 10px;
+  font-size: 18px; background: #ff4d88; color: #fff; cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15); transition: 0.1s;
+}
+.keyboard button:active { transform: scale(0.9); background: #e60073; }
+
+img { max-width: 85%; max-height: 160px; object-fit: contain; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin: 10px 0; }
+.btn {
+  padding: 10px 20px; border: none; border-radius: 10px;
+  background: #ff4d88; color: #fff; font-size: 15px; cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s;
+}
+.btn:hover { background: #e60073; }
+
+/* =========================
+   POPUP SECRET PIN
+========================= */
+#secretPinPopup {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); z-index: 19999; justify-content: center; align-items: center;
+}
+.secret-pin-box { background: white; padding: 25px; border-radius: 20px; width: 85%; max-width: 340px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .secret-pin-box { padding: 10px 20px; max-width: 450px; }
+  .secret-pin-box .keyboard button { width: 35px !important; height: 30px !important; font-size: 12px !important; }
+}
+
+/* TERMINAL DECRYPT */
+#codePopup {
+  display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.85); z-index: 20000; justify-content: center; align-items: center;
+}
+.code-box {
+  background: #1e1e1e; border: 2px solid #ff4d88; border-radius: 12px;
+  width: 85%; max-width: 360px; padding: 20px; box-shadow: 0 0 20px rgba(255, 77, 136, 0.5); box-sizing: border-box;
+}
+.code-header { display: flex; gap: 6px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+.circle { width: 12px; height: 12px; border-radius: 50%; }
+.circle.r { background: #ff5f56; }
+.circle.y { background: #ffbd2e; }
+.circle.g { background: #27c93f; }
+#codeTerminal { font-family: 'Fira Code', monospace; font-size: 14px; color: #00ff66; min-height: 120px; white-space: pre-wrap; line-height: 1.5; }
+
+/* ====================================
+   KARTU KATA-KATA AKHIR (FINAL MESSAGE)
+==================================== */
+#finalMessageCard {
+  display: none;
+  position: relative;
+  z-index: 100;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+  max-width: 420px;
+  width: 90%;
+  height: 75vh;
+  max-height: 480px;
+  padding: 25px;
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#finalMessageCard.show {
+  display: flex;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.final-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
+  padding-right: 5px;
+  text-align: center;
+}
+
+/* Style khusus tulisan surat cinta/kata-kata */
+.final-content h2 {
+  font-family: 'Fredoka', sans-serif;
+  color: #ff4d88;
+  font-size: 22px;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.final-content p {
+  font-family: 'Dancing Script', cursive;
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+  line-height: 28px;
+  margin-bottom: 15px;
+}
+
+/* UTILITY */
+canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+#bgVideo { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: -1; }
+#musicToggle { display: block; margin: 15px auto; padding: 12px 30px; border: none; border-radius: 50px; background: #ff4d88; color: #fff; font-size: 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<video id="bgVideo" playsinline>
+    <source src="kenangan.mp4" type="video/mp4">
+</video>
+
+<div class="card" id="mainCard">
+  <div class="slide active" id="slide1">
+    <div class="content">
+      <h1>Masukkan PIN 🎂</h1>
+      <div class="pin-box" id="pinBox1">
+        <input type="password" maxlength="1" readonly>
+        <input type="password" maxlength="1" readonly>
+        <input type="password" maxlength="1" readonly>
+        <input type="password" maxlength="1" readonly>
+      </div>
+      <div class="keyboard">
+        <div class="row">
+          <button onclick="pressNum(1)">1</button>
+          <button onclick="pressNum(2)">2</button>
+          <button onclick="pressNum(3)">3</button>
+        </div>
+        <div class="row">
+          <button onclick="pressNum(4)">4</button>
+          <button onclick="pressNum(5)">5</button>
+          <button onclick="pressNum(6)">6</button>
+        </div>
+        <div class="row">
+          <button onclick="pressNum(7)">7</button>
+          <button onclick="pressNum(8)">8</button>
+          <button onclick="pressNum(9)">9</button>
+        </div>
+        <div class="row">
+          <button onclick="deleteNum()">⌫</button>
+          <button onclick="pressNum(0)">0</button>
+          <button onclick="checkPin()">✔</button>
+        </div>
+      </div>
+      <div class="error" id="errorMsg"></div>
+      <p style="margin-top:5px; font-size:12px; color:#666;"><i>* Clue: Kapan pertama kali kamu jatuh cinta ke akuu❔❔</i></p>
+    </div>
+  </div>
+
+  <div class="slide" id="slide2">
+    <div class="content">
+      <h1>Happy Graduation</h1>
+      <img src="love.gif" alt="ILY">
+      <p>Selamat atas kelulusannya yaaa sayangg.</p>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" style="visibility: hidden;">⬅ Kembali</button>
+      <button class="btn" onclick="changeSlide(3)">Lanjut ➡</button>
+    </div>
+  </div>
+
+  <div class="slide" id="slide3">
+    <div class="content">
+      <h1>INI PEMBUATNYA YAA</h1>
+      <img src="buds.jpeg" alt="Aku">
+      <p>KING BUDSSSS</p>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" onclick="changeSlide(2)">⬅ Kembali</button>
+      <button class="btn" onclick="changeSlide(4)">Lanjut ➡</button>
+    </div>
+  </div>
+
+  <div class="slide" id="slide4">
+    <div class="content">
+      <img src="foto.png" alt="Foto Romantis">
+      <p>Ternyata Foto inii 3 taun laluu yaaa</p>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" onclick="changeSlide(3)">⬅ Kembali</button>
+      <button class="btn" onclick="changeSlide(5)">Lanjut ➡</button>
+    </div>
+  </div>
+
+  <div class="slide" id="slide5">
+    <div class="content">
+      <img src="uya.jpeg" alt="sayang">
+      <p>dann inii kenangan samaa temenn temenn SMK!!</p>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" onclick="changeSlide(4)">⬅ Kembali</button>
+      <button class="btn" onclick="changeSlide(6)">Lanjut ➡</button>
+    </div>
+  </div>
+
+  <div class="slide" id="slide6">
+    <div class="content">
+      <h1>RAHASIA UNTUK MU</h1>
+      <p style="margin-bottom:10px;">Tadi kan udahh tuhh liatt sekilass sekarangg kamuu kepoo gaa</p>
+      <button class="btn" id="musicToggle" onclick="handleSecretClick()">SECRET</button>
+    </div>
+    <div class="nav-btns">
+      <button class="btn" onclick="changeSlide(5)">⬅ Kembali</button>
+    </div>
+  </div>
+</div>
+
+<div id="secretPinPopup">
+  <div class="secret-pin-box">
+    <h2 style="font-family:'Fredoka', sans-serif; color:#ff4d88; margin-bottom:5px;">Masukkan PIN Rahasia 🔒</h2>
+    <p style="font-size:12px; color:#666; margin-bottom:10px;">Eits, butuh kode akses khusus! *Clue nya tanggal lahir kita</p>
+    <div class="pin-box" id="secretPinBox">
+      <input type="password" maxlength="1" readonly>
+      <input type="password" maxlength="1" readonly>
+      <input type="password" maxlength="1" readonly>
+      <input type="password" maxlength="1" readonly>
+    </div>
+    <div class="keyboard">
+      <div class="row">
+        <button onclick="pressSecretNum(1)">1</button>
+        <button onclick="pressSecretNum(2)">2</button>
+        <button onclick="pressSecretNum(3)">3</button>
+      </div>
+      <div class="row">
+        <button onclick="pressSecretNum(4)">4</button>
+        <button onclick="pressSecretNum(5)">5</button>
+        <button onclick="pressSecretNum(6)">6</button>
+      </div>
+      <div class="row">
+        <button onclick="pressSecretNum(7)">7</button>
+        <button onclick="pressSecretNum(8)">8</button>
+        <button onclick="pressSecretNum(9)">9</button>
+      </div>
+      <div class="row">
+        <button onclick="deleteSecretNum()">⌫</button>
+        <button onclick="pressSecretNum(0)">0</button>
+        <button onclick="checkSecretPin()">✔</button>
+      </div>
+    </div>
+    <div class="error" id="secretErrorMsg"></div>
+    <button class="btn" style="background:#555; margin-top:5px; font-size:12px; padding:5px 12px;" onclick="closeSecretPinPopup()">Batal</button>
+  </div>
+</div>
+
+<div id="codePopup">
+  <div class="code-box">
+    <div class="code-header">
+      <div class="circle r"></div>
+      <div class="circle y"></div>
+      <div class="circle g"></div>
+    </div>
+    <div id="codeTerminal"></div>
+  </div>
+</div>
+
+<div id="finalMessageCard">
+  <div class="final-content">
+    <h2>HAII SAYANGG KUUU ❤️</h2>
+    <p>Happy Graduation Sayanggkuuuuu cantikkuuu.</p>
+    <p>Hari ini aku bangga melihatmu sampai di titik ini. Semua perjuangan, lelah, dan air mata yang kamu lewati akhirnya terbayar. Tapi di balik kebahagiaan ini, ada sedikit rasa sedih yang sulit aku jelaskan.</p>
+    <p>Setelah semua waktu yang kita habiskan bersama, kini kita harus melangkah menuju masa depan yang mungkin tidak selalu berada di jalan yang sama.</p>
+    <p>Terima kasih sudah bertahan dan berjuang bersamaku sampai saat ini. Menjadi bagian dari perjalananmu adalah salah satu hal terindah dalam hidupku.</p>
+    <p>Semoga di lembaran hidupmu yang baru, semua impianmu bisa tercapai satu per satu! LETSS GOOOO!!! ✨✨</p>
+  </div>
+  <button class="btn" style="margin-top: 15px; width: 100%;" onclick="restartToMenu()">🔄 Kembali ke Menu Utama</button>
+</div>
+
+<script>
+/* =========================
+   SISTEM NAVIGASI SLIDE
+========================= */
+function changeSlide(slideNumber) {
+  const allSlides = document.querySelectorAll('.slide');
+  allSlides.forEach(slide => slide.classList.remove('active'));
+  
+  const targetSlide = document.getElementById('slide' + slideNumber);
+  if (targetSlide) targetSlide.classList.add('active');
+}
+
+/* =========================
+   KEYBOARD & PIN UTAMA
+========================= */
+function pressNum(num) {
+  const inputs = document.querySelectorAll('#pinBox1 input');
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].value === "") {
+      inputs[i].value = num;
+      break;
+    }
+  }
+}
+function deleteNum() {
+  const inputs = document.querySelectorAll('#pinBox1 input');
+  for (let i = inputs.length - 1; i >= 0; i--) {
+    if (inputs[i].value !== "") {
+      inputs[i].value = "";
+      break;
+    }
+  }
+}
+function checkPin() {
+  const inputs = document.querySelectorAll('#pinBox1 input');
+  const pin = [...inputs].map(i => i.value).join('');
+  if (pin === "2023") {
+    document.getElementById('errorMsg').innerText = "";
+    changeSlide(2);
+  } else {
+    document.getElementById('errorMsg').innerText = "PIN salah, coba lagi!";
+    inputs.forEach(i => i.value = "");
+  }
+}
+
+/* =========================
+   KEYBOARD & PIN RAHASIA
+========================= */
+function pressSecretNum(num) {
+  const inputs = document.querySelectorAll('#secretPinBox input');
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].value === "") {
+      inputs[i].value = num;
+      break;
+    }
+  }
+}
+function deleteSecretNum() {
+  const inputs = document.querySelectorAll('#secretPinBox input');
+  for (let i = inputs.length - 1; i >= 0; i--) {
+    if (inputs[i].value !== "") {
+      inputs[i].value = "";
+      break;
+    }
+  }
+}
+function closeSecretPinPopup() {
+  document.getElementById("secretPinPopup").style.display = "none";
+  document.querySelectorAll('#secretPinBox input').forEach(i => i.value = "");
+  document.getElementById('secretErrorMsg').innerText = "";
+}
+function handleSecretClick() {
+  document.getElementById("secretPinPopup").style.display = "flex";
+}
+function checkSecretPin() {
+  const inputs = document.querySelectorAll('#secretPinBox input');
+  const pin = [...inputs].map(i => i.value).join('');
+  if (pin === "1923") {
+    document.getElementById('secretErrorMsg').innerText = "";
+    document.getElementById("secretPinPopup").style.display = "none";
+    runDecryptTerminal();
+  } else {
+    document.getElementById('secretErrorMsg').innerText = "PIN Salah!";
+    inputs.forEach(i => i.value = "");
+  }
+}
+
+/* =========================
+   TERMINAL DECRYPT ANIMATION
+========================= */
+const secretLines = [
+  "> INITIALIZING SYSTEM...",
+  "> ACCESSING SECRET DIRECTORY...",
+  "> BYPASSING SECURITY BLOCK...",
+  "> LOADING SPECIAL MEMORIES...",
+  "> SUCCESS! DECRYPTING VIDEO..."
+];
+function runDecryptTerminal() {
+  const popup = document.getElementById("codePopup");
+  const terminal = document.getElementById("codeTerminal");
+  popup.style.display = "flex";
+  terminal.innerText = "";
+  
+  let lineIndex = 0;
+  let charIndex = 0;
+  
+  function typeEffect() {
+    if (lineIndex < secretLines.length) {
+      if (charIndex < secretLines[lineIndex].length) {
+        terminal.innerText += secretLines[lineIndex].charAt(charIndex);
+        charIndex++;
+        setTimeout(typeEffect, 25);
+      } else {
+        terminal.innerText += "\n";
+        lineIndex++;
+        charIndex = 0;
+        setTimeout(typeEffect, 300);
+      }
+    } else {
+      setTimeout(() => {
+        popup.style.display = "none";
+        startMemoriesVideo();
+      }, 600);
+    }
+  }
+  typeEffect();
+}
+
+/* =========================
+   VIDEO CONTROL
+========================= */
+const video = document.getElementById("bgVideo");
+function startMemoriesVideo() {
+  const card = document.getElementById("mainCard");
+  const canvas = document.getElementById("canvas");
+  
+  canvas.style.display = "none";
+  card.style.display = "none"; // Sembunyikan kartu menu utama total
+  
+  video.style.display = "block";
+  video.currentTime = 0;
+  video.play();
+}
+
+/* KETIKA VIDEO SELESAI -> LANGSUNG MUNCUL KATA-KATA UTAMA */
+video.addEventListener("ended", function() {
+  this.style.display = "none";
+  
+  // Munculkan kembali background hati berterbangan
+  const canvas = document.getElementById("canvas");
+  canvas.style.display = "block";
+  
+  // Tampilkan kartu pesan akhir tepat di tengah layar
+  const finalCard = document.getElementById("finalMessageCard");
+  finalCard.style.display = "flex";
+  setTimeout(() => {
+    finalCard.classList.add("show");
+  }, 50);
+});
+
+/* RESTART KE AWAL */
+function restartToMenu() {
+  const finalCard = document.getElementById("finalMessageCard");
+  const card = document.getElementById("mainCard");
+  
+  finalCard.classList.remove("show");
+  setTimeout(() => {
+    finalCard.style.display = "none";
+    card.style.display = "flex";
+    changeSlide(1); // Balikkan ke slide pengisian PIN pertama kali
+    document.querySelectorAll('#pinBox1 input').forEach(i => i.value = "");
+  }, 400);
+}
+
+/* =========================
+   ANIMASI FLOATING HEARTS
+========================= */
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+class Heart {
+  constructor() {
+    this.reset();
+    this.y = Math.random() * canvas.height;
+  }
+  reset() {
+    this.x = Math.random() * canvas.width;
+    this.y = canvas.height + 20;
+    this.size = 8 + Math.random() * 15;
+    this.speed = 0.6 + Math.random() * 1.2;
+    this.alpha = 0.4 + Math.random() * 0.5;
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.fillStyle = `rgba(255, 0, 102, ${this.alpha})`;
+    ctx.beginPath();
+    ctx.moveTo(0, -this.size / 2);
+    ctx.bezierCurveTo(this.size / 2, -this.size, this.size, -this.size / 4, 0, this.size);
+    ctx.bezierCurveTo(-this.size, -this.size / 4, -this.size / 2, -this.size, 0, -this.size / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  update() {
+    this.y -= this.speed;
+    if (this.y < -30) this.reset();
+    this.draw();
+  }
+}
+
+let hearts = [];
+for (let i = 0; i < 20; i++) hearts.push(new Heart());
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hearts.forEach(h => h.update());
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
